@@ -14,23 +14,50 @@ def prevFirstDay():
     l_day = prevLastDay()
     return datetime.date(day = 1, month=l_day.month, year = l_day.year)
 
+def yesterday():
+    return datetime.date.today() - datetime.timedelta(days = 1)
+    
 def q_transform(string):
     return ''.join(re.findall('[a-zA-Z]', string)).lower()
     
 class AppAnnieAPI(object):
-    DEFAULT_ENDPOINT = 'https://api.appannie.com/v1.1/'
+    DEFAULT_ENDPOINT = 'https://api.appannie.com/'
 
     def __init__(self, api_key, endpoint=DEFAULT_ENDPOINT):
         self.endpoint = endpoint
         self.api_key = api_key
                         
     def meta_regions(self):
-        method = 'meta/countries'
+        method = 'v1.1/meta/countries'
         return self._request(method)
     
     def meta_categories(self, market = 'google-play'):
-        method = 'meta/apps/{}/categories'.format(market)
+        method = 'v1.1/meta/apps/{}/categories'.format(market)
         return self._request(method)
+
+    def account_connections(self, page = 0):
+        method = 'v1/accounts?page_index={}'.format(page)
+        return self._request(method)
+    
+    def account_connections_apps(self, acc_id, page=0):
+        method = 'v1/accounts/{}/apps?page_index={}'.format(acc_id, page)
+        return self._request(method)
+    
+    def account_in_app_purchase(self, acc_id, app_id, page = 0):
+        method = 'v1/{}/apps/{}/iaps?page_index={}'.format(acc_id, app_id, page)
+        return self._request(method)
+    
+    def account_shared_apps(self, page = 0):
+        method = 'v1/sharing/apps?page_index={}'.format(page)
+        return self._request(method)
+    
+    def account_sales(self, acc_id, break_down = 'application+country+date', start_date = None, 
+                      end_date = None, currency='USD', countries='WW', page=0):
+        return self._get_sales('account', acc_id, None, break_down, start_date, end_date, currency, countries, page)
+
+    def app_sales(self, app_id, acc_id, break_down = 'application+country+date', start_date = None, 
+                      end_date = None, currency='USD', countries='WW', page=0):
+        return self._get_sales('app', acc_id, app_id, break_down, start_date, end_date, currency, countries, page)
     
     def app_top(self, market = 'google-play', countries = 'WW', categories = 'OVERALL', 
                 device = 'android', feeds = 'free paid grossing', ranks = 100, 
@@ -43,6 +70,12 @@ class AppAnnieAPI(object):
                 granularity = 'daily', date = None):
         return self._get_top('pubs', market, countries, categories, device, feeds, ranks, 
                granularity, date)
+
+    def store_top(self, market = 'google-play', countries = 'WW', categories = 'OVERALL', 
+                device = 'android', feeds = 'free paid grossing', ranks = 100, 
+                date = yesterday().strftime('%Y-%m-%d')):
+        return self._get_top('store', market, countries, categories, device, feeds, ranks, 
+               None, date)
         
     def app_search(self, query, market = 'google-play', countries = 'WW', categories = 'OVERALL',
                    device = 'android', feeds = 'free paid grossing', granularity = 'monthly',
@@ -64,6 +97,10 @@ class AppAnnieAPI(object):
                 result.append(app)
         response['list'] = result
         return response
+    
+    def app_details(self, app_id, market = 'google-play'):
+        method = 'v1.1/apps/{}/app/{}/details'.format(market, app_id)
+        return self._request(method)
                
     def app_downloads(self, app_id, market = 'google-play', countries = 'WW', 
                     device = None, granularity = 'daily',
@@ -88,20 +125,37 @@ class AppAnnieAPI(object):
                     start_date = None, end_date = None):
         return self._get_history('pub', 'revenue', pub_id, market, categories, countries, 
                                  device, granularity, start_date, end_date)
-    
+
+    def _get_sales(self, sales_for, acc_id, app_id, break_down, start_date, end_date, currency, countries, page):
+        if sales_for == 'account':
+            method = 'v1/accounts/{}/sales'.format(acc_d)
+        elif sales_for == 'app':
+            method = 'v1/accounts/{}/apps/{}/sales'.format(acc_id, app_id)
+        if not start_date:
+            start_date = prevFirstDay().strftime('%Y-%m-%d')
+        if not end_date:
+            end_date = prevLastDay().strftime('%Y-%m-%d')
+        params = {'break_down':break_down, 'start_date':start_date, 'end_date':end_date, 
+                  'currency':currency, 'countries':countries, 'page_index':page}
+        return self._request(method, params)
+                                     
     def _get_top(self, top_of, market, countries, categories, device, feeds, ranks, 
                 granularity, date):
         if top_of == 'apps':
-            top_of = 'ranking'
+            method = 'v1.1/intelligence/apps/{}/ranking'.format(market)
         elif top_of == 'pubs':
-            top_of = 'publisher-ranking'
-        method = 'intelligence/apps/{}/{}'.format(market, top_of)
+            method = 'v1.1/intelligence/apps/{}/publisher-ranking'.format(market)
+        elif top_of == 'store':
+            method = 'v1.1/apps/{}/ranking'.format(market)
+        
         if market == 'ios' and device == 'android':
             device = 'ios'
         if not date:
             date = prevLastDay().strftime('%Y-%m-%d')
         params = {'countries':countries, 'categories':categories, 'device':device,
-                  'feeds':feeds, 'granularity':granularity, 'date':date}
+                  'feeds':feeds, 'date':date}
+        if top_of != 'store':
+            params['granularity'] = granularity
         if ranks:
             params['ranks'] = ranks
         return self._request(method, params)
@@ -110,7 +164,7 @@ class AppAnnieAPI(object):
                     granularity, start_date, end_date):
         if history_of == 'pub':
             history_of = 'publisher'
-        method = 'intelligence/apps/{}/{}/{}/history'.format(market, history_of, id)
+        method = 'v1.1/intelligence/apps/{}/{}/{}/history'.format(market, history_of, id)
         
         if not device:
             if market == 'google-play':
