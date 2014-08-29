@@ -9,17 +9,17 @@ Bold parameters are required.
 
 ### Meta
 
-* *meta_regions*()
-* *meta_categories*(market)
+* **meta_regions**()
+* **meta_categories**(market)
 
 ### Store
 
-* *store_top*(market, countries, categories, device, feeds, ranks, date)
+* **store_top**(market, countries, categories, device, feeds, ranks, date)
 
 ### Account
 
-* *account_connections*(page)
-* *account\_connections\_apps*(*acc_id*, page)
+* **account_connections**(page)
+* **account\_connections\_apps**(**acc_id**, page)
 * *account\_in\_app\_purchase*(*acc\_id*, *app_id*, page)
 * *account\_shared_apps*(page)
 * *account\_sales*(*acc\_id*, break\_down, start\_date, end_date, currency, countries, page)
