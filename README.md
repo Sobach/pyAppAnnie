@@ -11,6 +11,8 @@ Bold parameters are required.
 
 * **meta_regions**()
 * **meta_categories**(market)
+* **meta_platforms**()
+* **meta_currencies**()
 
 ### Store
 
@@ -38,3 +40,7 @@ Bold parameters are required.
 * **app\_details**(**app_id**, market)
 * **app\_downloads**(**app\_id**, market, countries, device, granularity, start\_date, end_date)
 * **app\_revenue**(**app\_id**, market, countries, device, granularity, start\_date, end_date)
+* **app\_ranks**(**app\_id**, market, start\_date, end\_date, interval, countries, categories, feeds, device)
+* **app\_features**(**app\_id**, market, start\_date, end\_date, countries, page)
+* **app\_reviews**(**app\_id**, **acc\_id**, start\_date, end\_date, countries, version, rating, page)
+* **app\_ratings**(**app\_id**, market, page)

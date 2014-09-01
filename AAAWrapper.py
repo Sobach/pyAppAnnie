@@ -34,6 +34,14 @@ class AppAnnieAPI(object):
     def meta_categories(self, market = 'google-play'):
         method = 'v1.1/meta/apps/{}/categories'.format(market)
         return self._request(method)
+    
+    def meta_platforms(self):
+        method = 'v1/meta/platforms'
+        return self._request(method)
+        
+    def meta_currencies(self):
+        method = 'v1/meta/currencies'
+        return self._request(method)
 
     def account_connections(self, page = 0):
         method = 'v1/accounts?page_index={}'.format(page)
@@ -101,7 +109,48 @@ class AppAnnieAPI(object):
     def app_details(self, app_id, market = 'google-play'):
         method = 'v1.1/apps/{}/app/{}/details'.format(market, app_id)
         return self._request(method)
-               
+    
+    def app_ranks(self, app_id, market = 'google-play', start_date = None, end_date = None,
+                  interval = 'daily', countries = 'WW', categories = 'OVERALL',
+                  feeds = 'free', device = 'android'):
+        if market != 'google-play' and device == 'android':
+            device = 'iphone'
+        if not start_date:
+            start_date = prevFirstDay().strftime('%Y-%m-%d')
+        if not end_date:
+            end_date = prevLastDay().strftime('%Y-%m-%d')
+        method = 'v1.1/apps/{}/app/{}/ranks'.format(market, app_id)
+        params = {'start_date':start_date, 'end_date':end_date, 'interval':interval, 
+                  'countries':countries, 'category':categories, 'feed':feeds, 'device':device}
+        return self._request(method, params)
+    
+    def app_features(self, app_id, market = 'google-play', start_date = None, end_date = None,
+                     countries = 'WW', page = 0):
+        if not start_date:
+            start_date = prevFirstDay().strftime('%Y-%m-%d')
+        if not end_date:
+            end_date = prevLastDay().strftime('%Y-%m-%d')
+        method = 'v1.1/apps/{}/app/{}/features'.format(market, app_id)
+        params = {'start_date':start_date, 'end_date':end_date, 'countries':countries,
+                  'page_index':page}
+        return self._request(method, params)
+    
+    def app_reviews(self, app_id, acc_id, start_date = None, end_date = None, countries = 'WW',
+                    version = 'all', rating = '5', page = 0):
+        if not start_date:
+            start_date = prevFirstDay().strftime('%Y-%m-%d')
+        if not end_date:
+            end_date = prevLastDay().strftime('%Y-%m-%d')
+        method = 'v1/accounts/{}/apps/{}/reviews'.format(acc_id, app_id)
+        params = {'start_date':start_date, 'end_date':end_date, 'countries':countries,
+                  'page_index':page, 'version':version, 'rating':rating}
+        return self._request(method, params)
+    
+    def app_ratings(self, app_id, market = 'google-play', page=0):
+        method = 'v1.1/apps/{}/app/{}/ratings'.format(market, app_id)
+        params = {'page_index':page}
+        return self._request(method, params)
+        
     def app_downloads(self, app_id, market = 'google-play', countries = 'WW', 
                     device = None, granularity = 'daily',
                     start_date = None, end_date = None):
