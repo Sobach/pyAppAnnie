@@ -1,7 +1,24 @@
 pyAppAnnie
 ==========
 
-[AppAnnie](http://www.appannie.com) is a service for mobile apps analytics. Here is a tiny python wrapper for main AppAnnie API endpoints.
+[AppAnnie](http://www.appannie.com) is a service for mobile apps analytics. Here is a tiny 
+python wrapper for main AppAnnie API endpoints.
+
+## Quick start
+
+Go to your AppAnnie [profile](https://www.appannie.com/account/api/key/) and generate 
+your API key. Use it to initialize API class.
+
+```Python
+from pyappannie import API
+from pprint import pprint
+api_key = '### PUT YOUR SECRET KEY HERE ###'
+api = API(api_key)
+# Getting countries list
+pprint(api.meta_regions())
+# Searching for messengers in top (access to Intelligence API is required)
+pprint(api.app_search('messenger', countries = 'US'))
+```
 
 ## Methods
 
